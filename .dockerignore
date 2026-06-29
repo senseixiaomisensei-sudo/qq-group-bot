@@ -1,0 +1,9 @@
+.env.local
+__pycache__/
+.pytest_cache/
+*.pyc
+logs/
+data/lagrange/
+data/*.lock
+.git/
+.pnpm-store/

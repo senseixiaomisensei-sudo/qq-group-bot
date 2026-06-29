@@ -1,0 +1,32 @@
+{
+  "features": {
+    "welcome": true,
+    "keyword_replies": true,
+    "banned_words": true,
+    "ai_chat": true,
+    "ai_image": true,
+    "ai_video": true
+  },
+  "bot": {
+    "qq": "",
+    "hosting_enabled": false,
+    "login_state": "not_configured",
+    "manual_action": "请先填写机器人 QQ 号。"
+  },
+  "welcome": {
+    "enabled": true,
+    "message": "欢迎 {nickname} 加入本群！"
+  },
+  "keywords": {},
+  "banned_words": [],
+  "moderation": {
+    "enabled": true,
+    "strike_limit": 2,
+    "window_hours": 24,
+    "kick_enabled": true
+  },
+  "warnings": {},
+  "stats": {
+    "groups": {}
+  }
+}

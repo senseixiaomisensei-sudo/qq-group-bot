@@ -1,0 +1,12 @@
+.env.local
+__pycache__/
+.pytest_cache/
+*.pyc
+data/*.lock
+logs/
+data/lagrange/
+data/*.db
+data/device.json
+data/keystore.json
+data/appsettings.json
+data/qr-*.png

@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QQ 群管机器人</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg-a: #6d28d9;
+      --bg-b: #a855f7;
+      --bg-c: #ec4899;
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-strong: #ffffff;
+      --ink: #241235;
+      --muted: #6b5c77;
+      --line: rgba(98, 49, 147, 0.16);
+      --primary: #7c3aed;
+      --primary-strong: #5b21b6;
+      --mint: #12b981;
+      --coral: #f05252;
+      --amber: #f59e0b;
+      --shadow: 0 22px 70px rgba(36, 18, 53, 0.22);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      color: var(--ink);
+      letter-spacing: 0;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(255,255,255,0.28), transparent 28%),
+        linear-gradient(135deg, var(--bg-a) 0%, var(--bg-b) 48%, var(--bg-c) 100%);
+    }
+
+    button, input, textarea { font: inherit; }
+
+    .shell {
+      width: min(1120px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 32px 0 42px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 18px;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.05;
+      font-weight: 850;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      font-size: 17px;
+      color: rgba(255,255,255,0.86);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.28);
+      color: white;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--amber);
+      box-shadow: 0 0 0 4px rgba(245,158,11,0.2);
+    }
+
+    .dot.online {
+      background: var(--mint);
+      box-shadow: 0 0 0 4px rgba(18,185,129,0.22);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stack { display: grid; gap: 18px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.46);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 0;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #ede9fe;
+      color: var(--primary-strong);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .card-body { padding: 18px; }
+
+    .field { display: grid; gap: 7px; margin-bottom: 13px; }
+
+    label { font-size: 13px; color: var(--muted); font-weight: 700; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      color: var(--ink);
+      min-height: 44px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea { resize: vertical; min-height: 78px; }
+
+    input:focus, textarea:focus {
+      border-color: rgba(124,58,237,0.55);
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.12);
+    }
+
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(124,58,237,0.28);
+    }
+
+    .button.secondary { background: #f5f3ff; color: var(--primary-strong); box-shadow: none; }
+    .button.danger { background: var(--coral); box-shadow: 0 12px 28px rgba(240,82,82,0.22); }
+    .button:disabled { opacity: 0.58; cursor: not-allowed; }
+
+    .host-button {
+      width: 100%;
+      min-height: 76px;
+      font-size: 22px;
+      background: linear-gradient(135deg, #ef4444, #7c3aed);
+    }
+
+    .host-button.on { background: linear-gradient(135deg, #10b981, #2563eb); }
+
+    .hint { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    .api-box {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.58);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 78px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: #faf7ff;
+      border: 1px solid var(--line);
+    }
+
+    .metric strong { display: block; font-size: 22px; margin-top: 4px; }
+
+    .switches {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.7);
+      font-weight: 750;
+    }
+
+    .switch input {
+      appearance: none;
+      width: 48px;
+      height: 28px;
+      min-height: 28px;
+      padding: 0;
+      border-radius: 999px;
+      background: #ddd6fe;
+      position: relative;
+      flex: 0 0 auto;
+      cursor: pointer;
+    }
+
+    .switch input::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      top: 2px;
+      left: 3px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(36,18,53,0.18);
+      transition: transform 0.18s ease;
+    }
+
+    .switch input:checked { background: var(--primary); }
+    .switch input:checked::after { transform: translateX(19px); }
+
+    .rules { display: grid; gap: 10px; }
+    .rule-row { display: grid; grid-template-columns: 0.85fr 1fr auto; gap: 8px; }
+
+    .logs {
+      max-height: 220px;
+      overflow: auto;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: #1f1230;
+      color: #f6edff;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .qr {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .qr img { width: min(210px, 100%); aspect-ratio: 1; object-fit: contain; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      width: min(520px, calc(100% - 28px));
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      color: white;
+      background: rgba(36,18,53,0.92);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 860px) {
+      .shell { width: min(100% - 20px, 560px); padding-top: 22px; }
+      .hero { grid-template-columns: 1fr; align-items: start; }
+      .grid { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .switches { grid-template-columns: 1fr; }
+      .row, .rule-row { grid-template-columns: 1fr; }
+      .button { width: 100%; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <h1>QQ 群管机器人</h1>
+        <p class="subtitle">零基础 · 会打字就能用</p>
+      </div>
+      <div class="status-pill"><span id="onlineDot" class="dot"></span><span id="topStatus">等待连接</span></div>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <article class="card">
+          <div class="card-head"><h2><span class="step">1</span>配置机器人账号</h2></div>
+          <div class="card-body">
+            <div class="field">
+              <label for="backendUrl">后端接口</label>
+              <input id="backendUrl" placeholder="https://你的 Railway 地址">
+            </div>
+            <div class="field">
+              <label for="adminToken">控制台密钥</label>
+              <input id="adminToken" type="password" placeholder="如果后端设置了密钥，在这里填写">
+            </div>
+            <div class="row">
+              <div class="field" style="margin:0">
+                <label for="qqNumber">机器人 QQ 号</label>
+                <input id="qqNumber" inputmode="numeric" placeholder="填写你自己的闲置 QQ 小号">
+              </div>
+              <button id="saveAccount" class="button" type="button">保存账号</button>
+            </div>
+            <p class="hint">填写 QQ 号后使用扫码/快速登录。出现滑块、设备锁或验证码时，状态区会暂停等待你本人处理。</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2><span class="step">2</span>API 接口</h2></div>
+          <div class="card-body">
+            <div class="api-box">
+              <div><strong>接口</strong><div id="apiBase">读取中</div></div>
+              <div><strong>密钥</strong><div id="apiKey">由后端保管</div></div>
+              <div><strong>模型</strong><div id="apiModels">聊天/看图 · 生图 · 生视频</div></div>
+            </div>
+            <p class="hint">密钥不会写入这个网页。Railway 后端保存后，这里只显示安全状态。</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2><span class="step">3</span>一键开关</h2></div>
+          <div class="card-body">
+            <button id="hostingButton" class="button host-button" type="button">开始托管</button>
+            <p id="manualAction" class="hint">点一下机器人就活了。</p>
+            <div id="qrBox" class="qr" hidden>
+              <img id="qrImage" alt="QQ 登录二维码">
+              <strong>请用 QQ 扫码确认</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2>快捷配置</h2><button id="refreshAll" class="button secondary" type="button">刷新</button></div>
+          <div class="card-body stack">
+            <div class="field">
+              <label for="welcomeText">欢迎语</label>
+              <textarea id="welcomeText" placeholder="欢迎 {nickname} 加入本群！"></textarea>
+            </div>
+            <div class="field">
+              <label for="bannedWords">违禁词</label>
+              <textarea id="bannedWords" placeholder="一行一个"></textarea>
+            </div>
+            <div class="rules" id="rules"></div>
+            <button id="addRule" class="button secondary" type="button">添加回复规则</button>
+            <button id="saveConfig" class="button" type="button">保存配置</button>
+          </div>
+        </article>
+      </div>
+
+      <aside class="stack">
+        <article class="card">
+          <div class="card-head"><h2>功能开关</h2></div>
+          <div class="card-body">
+            <div class="switches" id="switches"></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2>运行状态</h2></div>
+          <div class="card-body">
+            <div class="metric-grid">
+              <div class="metric">状态<strong id="stateText">离线</strong></div>
+              <div class="metric">托管群<strong id="groupCount">0</strong></div>
+              <div class="metric">消息数<strong id="messageCount">0</strong></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2>日志</h2><button id="loadLogs" class="button secondary" type="button">查看</button></div>
+          <div class="card-body"><div id="logs" class="logs">暂无日志</div></div>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const DEFAULT_BACKEND_BASE = "";
+    const features = [
+      ["welcome", "入群欢迎"],
+      ["keyword_replies", "关键词回复"],
+      ["banned_words", "违禁词"],
+      ["ai_chat", "AI 聊天"],
+      ["ai_image", "AI 生图"],
+      ["ai_video", "AI 生视频"]
+    ];
+    const $ = (id) => document.getElementById(id);
+    let config = { features: {}, welcome: { message: "" }, banned_words: [], keywords: {} };
+    let statusTimer = null;
+
+    function backendBase() {
+      return $("backendUrl").value.trim().replace(/\/$/, "");
+    }
+
+    function headers() {
+      const value = $("adminToken").value.trim();
+      return value ? { "Content-Type": "application/json", "X-Admin-Token": value } : { "Content-Type": "application/json" };
+    }
+
+    async function api(path, options = {}) {
+      const base = backendBase();
+      if (!base) throw new Error("请先填写后端接口");
+      const response = await fetch(`${base}${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `请求失败 ${response.status}`);
+      }
+      return response.status === 204 ? null : response.json();
+    }
+
+    function toast(message) {
+      const el = $("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      window.clearTimeout(el._timer);
+      el._timer = window.setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function saveLocal() {
+      localStorage.setItem("qqbot.backend", $("backendUrl").value.trim());
+      localStorage.setItem("qqbot.token", $("adminToken").value.trim());
+    }
+
+    function renderSwitches() {
+      $("switches").innerHTML = features.map(([key, label]) => `
+        <label class="switch"><span>${label}</span><input type="checkbox" data-feature="${key}"></label>
+      `).join("");
+      document.querySelectorAll("[data-feature]").forEach((input) => {
+        input.checked = config.features[input.dataset.feature] !== false;
+        input.addEventListener("change", saveConfig);
+      });
+    }
+
+    function renderRules() {
+      const entries = Object.entries(config.keywords || {});
+      $("rules").innerHTML = entries.map(([key, value], index) => `
+        <div class="rule-row" data-rule="${index}">
+          <input data-rule-key value="${escapeAttr(key)}" placeholder="关键词">
+          <input data-rule-value value="${escapeAttr(value)}" placeholder="回复内容">
+          <button class="button danger" type="button" data-remove-rule>删除</button>
+        </div>
+      `).join("");
+      document.querySelectorAll("[data-remove-rule]").forEach((button) => {
+        button.addEventListener("click", () => {
+          button.closest(".rule-row").remove();
+          saveConfig();
+        });
+      });
+    }
+
+    function escapeAttr(value) {
+      return String(value).replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
+    }
+
+    async function loadAll() {
+      saveLocal();
+      await Promise.allSettled([loadStatus(), loadConfig(), loadApiStatus(), loadLogs()]);
+      if (!statusTimer) statusTimer = window.setInterval(loadStatus, 6000);
+    }
+
+    async function loadStatus() {
+      const data = await api("/status");
+      $("qqNumber").value = data.qq || $("qqNumber").value;
+      $("stateText").textContent = data.online ? "在线" : stateLabel(data.login_state);
+      $("groupCount").textContent = data.group_count ?? 0;
+      $("messageCount").textContent = data.message_count ?? 0;
+      $("manualAction").textContent = data.manual_action || "";
+      $("topStatus").textContent = data.online ? "在线 · 已托管" : stateLabel(data.login_state);
+      $("onlineDot").classList.toggle("online", Boolean(data.online));
+      $("hostingButton").textContent = data.hosting_enabled ? "停止托管" : "开始托管";
+      $("hostingButton").classList.toggle("on", Boolean(data.hosting_enabled));
+      $("qrBox").hidden = !data.qr_available;
+      if (data.qr_available) $("qrImage").src = `${backendBase()}${data.qr_code_url}`;
+    }
+
+    async function loadConfig() {
+      config = await api("/config");
+      $("welcomeText").value = config.welcome?.message || "";
+      $("bannedWords").value = (config.banned_words || []).join("\n");
+      renderSwitches();
+      renderRules();
+    }
+
+    async function loadApiStatus() {
+      const data = await api("/api-status");
+      $("apiBase").textContent = data.base_url || "未配置";
+      $("apiKey").textContent = data.configured ? `已配置 ${data.key_preview}` : "未配置";
+      $("apiModels").textContent = `${data.models.chat} · ${data.models.image} · ${data.models.video}`;
+    }
+
+    async function loadLogs() {
+      const data = await api("/logs?limit=80");
+      $("logs").textContent = data.items?.length ? data.items.join("\n") : "暂无日志";
+    }
+
+    async function saveAccount() {
+      saveLocal();
+      const qq = $("qqNumber").value.trim();
+      await api("/bot/account", { method: "POST", body: JSON.stringify({ qq }) });
+      toast("账号已保存");
+      await loadStatus();
+    }
+
+    async function toggleHosting() {
+      saveLocal();
+      const running = $("hostingButton").classList.contains("on");
+      await api(running ? "/bot/hosting/stop" : "/bot/hosting/start", { method: "POST", body: "{}" });
+      toast(running ? "已停止托管" : "已开始托管");
+      await loadStatus();
+      await loadLogs();
+    }
+
+    async function saveConfig() {
+      saveLocal();
+      const featurePayload = {};
+      document.querySelectorAll("[data-feature]").forEach((input) => featurePayload[input.dataset.feature] = input.checked);
+      const keywordPayload = {};
+      document.querySelectorAll(".rule-row").forEach((row) => {
+        const key = row.querySelector("[data-rule-key]").value.trim();
+        const value = row.querySelector("[data-rule-value]").value.trim();
+        if (key && value) keywordPayload[key] = value;
+      });
+      const payload = {
+        features: featurePayload,
+        welcome: { enabled: featurePayload.welcome !== false, message: $("welcomeText").value.trim() },
+        banned_words: $("bannedWords").value.split("\n").map((item) => item.trim()).filter(Boolean),
+        keywords: keywordPayload
+      };
+      config = await api("/config", { method: "POST", body: JSON.stringify(payload) });
+      toast("配置已保存");
+      renderSwitches();
+      renderRules();
+    }
+
+    function addRule() {
+      const row = document.createElement("div");
+      row.className = "rule-row";
+      row.innerHTML = `<input data-rule-key placeholder="关键词"><input data-rule-value placeholder="回复内容"><button class="button danger" type="button" data-remove-rule>删除</button>`;
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      $("rules").appendChild(row);
+    }
+
+    function stateLabel(value) {
+      return ({
+        not_configured: "未配置",
+        configured: "已配置",
+        waiting_qr: "等待扫码",
+        waiting_verification: "等待验证",
+        online: "在线",
+        reconnecting: "重连中",
+        failed: "启动失败",
+        needs_manual_action: "需要处理"
+      })[value] || "未知";
+    }
+
+    function bind() {
+      $("backendUrl").value = localStorage.getItem("qqbot.backend") || DEFAULT_BACKEND_BASE;
+      $("adminToken").value = localStorage.getItem("qqbot.token") || "";
+      $("saveAccount").addEventListener("click", () => saveAccount().catch((error) => toast(error.message)));
+      $("hostingButton").addEventListener("click", () => toggleHosting().catch((error) => toast(error.message)));
+      $("saveConfig").addEventListener("click", () => saveConfig().catch((error) => toast(error.message)));
+      $("refreshAll").addEventListener("click", () => loadAll().catch((error) => toast(error.message)));
+      $("loadLogs").addEventListener("click", () => loadLogs().catch((error) => toast(error.message)));
+      $("addRule").addEventListener("click", addRule);
+      if ($("backendUrl").value) loadAll().catch((error) => toast(error.message));
+    }
+
+    bind();
+  </script>
+</body>
+</html>
