@@ -24,4 +24,5 @@ ENV PATH=/app/venv/bin:$PATH
 
 EXPOSE 8090 18080
 
+ENTRYPOINT []
 CMD ["python", "admin.py"]
