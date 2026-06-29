@@ -344,9 +344,15 @@
               <label for="backendUrl">后端接口</label>
               <input id="backendUrl" placeholder="https://你的 Railway 地址">
             </div>
-            <div class="field">
-              <label for="adminToken">控制台密钥</label>
-              <input id="adminToken" type="password" placeholder="如果后端设置了密钥，在这里填写">
+            <div class="row">
+              <div class="field" style="margin:0">
+                <label for="adminUser">管理员账号</label>
+                <input id="adminUser" autocomplete="username" value="admin" placeholder="admin">
+              </div>
+              <div class="field" style="margin:0">
+                <label for="adminToken">管理员密码</label>
+                <input id="adminToken" type="password" autocomplete="current-password" placeholder="输入管理员密码">
+              </div>
             </div>
             <div class="row">
               <div class="field" style="margin:0">
@@ -453,6 +459,10 @@
       return value ? { "Content-Type": "application/json", "X-Admin-Token": value } : { "Content-Type": "application/json" };
     }
 
+    function requireAdminUser() {
+      if ($("adminUser").value.trim() !== "admin") throw new Error("管理员账号应填写 admin");
+    }
+
     async function api(path, options = {}) {
       const base = backendBase();
       if (!base) throw new Error("请先填写后端接口");
@@ -474,6 +484,7 @@
 
     function saveLocal() {
       localStorage.setItem("qqbot.backend", $("backendUrl").value.trim());
+      localStorage.setItem("qqbot.adminUser", $("adminUser").value.trim());
       localStorage.setItem("qqbot.token", $("adminToken").value.trim());
     }
 
@@ -550,6 +561,7 @@
     }
 
     async function saveAccount() {
+      requireAdminUser();
       saveLocal();
       const qq = $("qqNumber").value.trim();
       await api("/bot/account", { method: "POST", body: JSON.stringify({ qq }) });
@@ -558,6 +570,7 @@
     }
 
     async function toggleHosting() {
+      requireAdminUser();
       saveLocal();
       const running = $("hostingButton").classList.contains("on");
       await api(running ? "/bot/hosting/stop" : "/bot/hosting/start", { method: "POST", body: "{}" });
@@ -567,6 +580,7 @@
     }
 
     async function saveConfig() {
+      requireAdminUser();
       saveLocal();
       const featurePayload = {};
       document.querySelectorAll("[data-feature]").forEach((input) => featurePayload[input.dataset.feature] = input.checked);
@@ -611,6 +625,7 @@
 
     function bind() {
       $("backendUrl").value = localStorage.getItem("qqbot.backend") || DEFAULT_BACKEND_BASE;
+      $("adminUser").value = localStorage.getItem("qqbot.adminUser") || "admin";
       $("adminToken").value = localStorage.getItem("qqbot.token") || "";
       $("saveAccount").addEventListener("click", () => saveAccount().catch((error) => toast(error.message)));
       $("hostingButton").addEventListener("click", () => toggleHosting().catch((error) => toast(error.message)));
